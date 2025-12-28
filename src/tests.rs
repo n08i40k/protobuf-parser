@@ -21,7 +21,7 @@ fn empty() {
 #[test]
 fn syntax() {
     let ast = parse_ast!("syntax.proto");
-    let target_ast = vec![ast::FileEntry::Syntax(Cow::from("proto3"))];
+    let target_ast = vec![ast::RootEntry::Syntax(Cow::from("proto3"))];
 
     assert_eq!(ast, target_ast);
 }
@@ -30,8 +30,8 @@ fn syntax() {
 fn package_simple() {
     let ast = parse_ast!("package-simple.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Package(Cow::from("mypkg")),
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Package(Cow::from("mypkg")),
     ];
 
     assert_eq!(ast, target_ast);
@@ -41,8 +41,8 @@ fn package_simple() {
 fn package_complex() {
     let ast = parse_ast!("package-complex.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Package(Cow::from("my.pkg")),
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Package(Cow::from("my.pkg")),
     ];
 
     assert_eq!(ast, target_ast);
@@ -52,8 +52,8 @@ fn package_complex() {
 fn import() {
     let ast = parse_ast!("import.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Import(Cow::from("google/protobuf/any.proto")),
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Import(Cow::from("google/protobuf/any.proto")),
     ];
 
     assert_eq!(ast, target_ast);
@@ -63,8 +63,8 @@ fn import() {
 fn message_empty() {
     let ast = parse_ast!("message-empty.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Empty"),
             entries: vec![],
         }),
@@ -77,13 +77,13 @@ fn message_empty() {
 fn message() {
     let ast = parse_ast!("message.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![
                 ast::MessageEntry::ReservedIndices(vec![
-                    ast::Range::from(2),
-                    ast::Range::from((6, ())),
+                    ast::Range::from(2..3),
+                    ast::Range::from(6..),
                 ]),
                 ast::MessageEntry::ReservedIdents(vec![Cow::from("sample")]),
                 ast::MessageEntry::Field(ast::Field {
@@ -125,8 +125,8 @@ fn message() {
 fn message_inner() {
     let ast = parse_ast!("message-inner.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Parent"),
             entries: vec![
                 ast::MessageEntry::Message(ast::Message {
@@ -157,8 +157,8 @@ fn message_inner() {
 fn r#enum() {
     let ast = parse_ast!("enum.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Enum(ast::Enum {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Enum(ast::Enum {
             ident: Cow::from("Enum"),
             entries: vec![
                 ast::EnumEntry::Pair {
@@ -187,17 +187,17 @@ fn r#enum() {
 fn options() {
     let ast = parse_ast!("options.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Import(Cow::from("google/protobuf/descriptor.proto")),
-        ast::FileEntry::Option(ast::Option {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Import(Cow::from("google/protobuf/descriptor.proto")),
+        ast::RootEntry::Option(ast::Option {
             key: Cow::from("java_multiple_files"),
             value: ast::MapValue::Boolean(true),
         }),
-        ast::FileEntry::Option(ast::Option {
+        ast::RootEntry::Option(ast::Option {
             key: Cow::from("java_package"),
             value: ast::MapValue::String(Cow::from("xd.xd")),
         }),
-        ast::FileEntry::Extend(ast::Extend {
+        ast::RootEntry::Extend(ast::Extend {
             r#type: Cow::from("google.protobuf.EnumValueOptions"),
             entries: vec![ast::ExtendEntry::Field(ast::Field {
                 modifier: ast::FieldModifier::Optional,
@@ -207,7 +207,7 @@ fn options() {
                 options: vec![],
             })],
         }),
-        ast::FileEntry::Extend(ast::Extend {
+        ast::RootEntry::Extend(ast::Extend {
             r#type: Cow::from("google.protobuf.FieldOptions"),
             entries: vec![ast::ExtendEntry::Field(ast::Field {
                 modifier: ast::FieldModifier::Optional,
@@ -220,7 +220,7 @@ fn options() {
                 }],
             })],
         }),
-        ast::FileEntry::Enum(ast::Enum {
+        ast::RootEntry::Enum(ast::Enum {
             ident: Cow::from("Enum"),
             entries: vec![
                 ast::EnumEntry::Option(ast::Option {
@@ -245,7 +245,7 @@ fn options() {
                 },
             ],
         }),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![
                 ast::MessageEntry::Option(ast::Option {
@@ -268,7 +268,7 @@ fn options() {
                         },
                         ast::Option {
                             key: Cow::from("edition_defaults"),
-                            value: ast::MapValue::Map(ast::JSONLikeMap::from([
+                            value: ast::MapValue::Map(ast::Map::from([
                                 (
                                     Cow::from("edition"),
                                     ast::MapValue::Ident(Cow::from("EDITION_PROTO2")),
@@ -278,7 +278,7 @@ fn options() {
                         },
                         ast::Option {
                             key: Cow::from("edition_defaults"),
-                            value: ast::MapValue::Map(ast::JSONLikeMap::from([
+                            value: ast::MapValue::Map(ast::Map::from([
                                 (
                                     Cow::from("edition"),
                                     ast::MapValue::Ident(Cow::from("EDITION_PROTO3")),
@@ -302,12 +302,12 @@ fn options() {
 fn comments() {
     let ast = parse_ast!("comments.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Import(Cow::from("google/protobuf/descriptor.proto")),
-        ast::FileEntry::Comment(ast::Comment::single_line("// single line comment")),
-        ast::FileEntry::Comment(ast::Comment::single_line("// another single line comment")),
-        ast::FileEntry::Comment(ast::Comment::multi_line("/* multi\n   line\n   comment */")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Import(Cow::from("google/protobuf/descriptor.proto")),
+        ast::RootEntry::Comment(ast::Comment::single_line("// single line comment")),
+        ast::RootEntry::Comment(ast::Comment::single_line("// another single line comment")),
+        ast::RootEntry::Comment(ast::Comment::multi_line("/* multi\n   line\n   comment */")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![
                 ast::MessageEntry::Comment(ast::Comment::single_line("// in message")),
@@ -322,7 +322,7 @@ fn comments() {
                 ast::MessageEntry::Comment(ast::Comment::single_line("// at the bottom")),
             ],
         }),
-        ast::FileEntry::Enum(ast::Enum {
+        ast::RootEntry::Enum(ast::Enum {
             ident: Cow::from("Enum"),
             entries: vec![
                 ast::EnumEntry::Comment(ast::Comment::single_line("// in enum")),
@@ -333,7 +333,7 @@ fn comments() {
                 },
             ],
         }),
-        ast::FileEntry::Extend(ast::Extend {
+        ast::RootEntry::Extend(ast::Extend {
             r#type: Cow::from("google.protobuf.FieldOptions"),
             entries: vec![
                 ast::ExtendEntry::Comment(ast::Comment::single_line("// in extend")),
@@ -346,7 +346,7 @@ fn comments() {
                 }),
             ],
         }),
-        ast::FileEntry::Comment(ast::Comment::single_line("// at the bottom of the file")),
+        ast::RootEntry::Comment(ast::Comment::single_line("// at the bottom of the file")),
     ];
 
     assert_eq!(ast, target_ast);
@@ -356,13 +356,13 @@ fn comments() {
 fn extensions() {
     let ast = parse_ast!("extensions.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto2")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto2")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![ast::MessageEntry::Extensions(vec![
-                ast::Range::from(1),
+                ast::Range::from(1..2),
                 ast::Range::from(2..5),
-                ast::Range::from((6, ())),
+                ast::Range::from(6..),
             ])],
         }),
     ];
@@ -374,8 +374,8 @@ fn extensions() {
 fn required() {
     let ast = parse_ast!("required.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto2")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto2")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![ast::MessageEntry::Field(ast::Field {
                 modifier: ast::FieldModifier::Required,
@@ -394,28 +394,28 @@ fn required() {
 fn keywords() {
     let ast = parse_ast!("keywords.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Message(ast::Message::empty("Ident")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Message(ast::Message::empty("Ident")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("to"),
             entries: vec![ast::MessageEntry::Message(ast::Message::empty("inner"))],
         }),
-        ast::FileEntry::Message(ast::Message::empty("max")),
-        ast::FileEntry::Message(ast::Message::empty("syntax")),
-        ast::FileEntry::Message(ast::Message::empty("option")),
-        ast::FileEntry::Message(ast::Message::empty("package")),
-        ast::FileEntry::Message(ast::Message::empty("import")),
-        ast::FileEntry::Message(ast::Message::empty("message")),
-        ast::FileEntry::Message(ast::Message::empty("oneof")),
-        ast::FileEntry::Message(ast::Message::empty("extend")),
-        ast::FileEntry::Message(ast::Message::empty("enum")),
-        ast::FileEntry::Message(ast::Message::empty("reserved")),
-        ast::FileEntry::Message(ast::Message::empty("extensions")),
-        ast::FileEntry::Message(ast::Message::empty("optional")),
-        ast::FileEntry::Message(ast::Message::empty("required")),
-        ast::FileEntry::Message(ast::Message::empty("repeated")),
-        ast::FileEntry::Message(ast::Message::empty("map")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Message(ast::Message::empty("max")),
+        ast::RootEntry::Message(ast::Message::empty("syntax")),
+        ast::RootEntry::Message(ast::Message::empty("option")),
+        ast::RootEntry::Message(ast::Message::empty("package")),
+        ast::RootEntry::Message(ast::Message::empty("import")),
+        ast::RootEntry::Message(ast::Message::empty("message")),
+        ast::RootEntry::Message(ast::Message::empty("oneof")),
+        ast::RootEntry::Message(ast::Message::empty("extend")),
+        ast::RootEntry::Message(ast::Message::empty("enum")),
+        ast::RootEntry::Message(ast::Message::empty("reserved")),
+        ast::RootEntry::Message(ast::Message::empty("extensions")),
+        ast::RootEntry::Message(ast::Message::empty("optional")),
+        ast::RootEntry::Message(ast::Message::empty("required")),
+        ast::RootEntry::Message(ast::Message::empty("repeated")),
+        ast::RootEntry::Message(ast::Message::empty("map")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![
                 ast::MessageEntry::Field(ast::Field::basic("bool", "var1", 1)),
@@ -437,8 +437,8 @@ fn keywords() {
 fn oneof() {
     let ast = parse_ast!("oneof.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Message(ast::Message {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Message(ast::Message {
             ident: Cow::from("Message"),
             entries: vec![
                 ast::MessageEntry::OneOf(ast::OneOf {
@@ -446,7 +446,7 @@ fn oneof() {
                     entries: vec![
                         ast::OneOfEntry::Option(ast::Option {
                             key: Cow::from("uninterpreted_option"),
-                            value: ast::MapValue::Map(ast::JSONLikeMap::from([(
+                            value: ast::MapValue::Map(ast::Map::from([(
                                 Cow::from("string_value"),
                                 ast::MapValue::String(Cow::from("")),
                             )])),
@@ -466,13 +466,13 @@ fn oneof() {
 fn service() {
     let ast = parse_ast!("service.proto");
     let target_ast = vec![
-        ast::FileEntry::Syntax(Cow::from("proto3")),
-        ast::FileEntry::Service(ast::Service {
+        ast::RootEntry::Syntax(Cow::from("proto3")),
+        ast::RootEntry::Service(ast::Service {
             ident: Cow::from("Service"),
             entries: vec![
                 ast::ServiceEntry::Option(ast::Option {
                     key: Cow::from("uninterpreted_option"),
-                    value: ast::MapValue::Map(ast::JSONLikeMap::from([(
+                    value: ast::MapValue::Map(ast::Map::from([(
                         Cow::from("string_value"),
                         ast::MapValue::String(Cow::from("")),
                     )])),
@@ -503,8 +503,8 @@ fn service() {
                 }),
             ],
         }),
-        ast::FileEntry::Message(ast::Message::empty("Request")),
-        ast::FileEntry::Message(ast::Message::empty("Reply")),
+        ast::RootEntry::Message(ast::Message::empty("Request")),
+        ast::RootEntry::Message(ast::Message::empty("Reply")),
     ];
 
     assert_eq!(ast, target_ast);

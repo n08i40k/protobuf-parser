@@ -1,4 +1,4 @@
-use crate::{ast, lexer, ast::JSONLikeMapTrait};
+use crate::{ast, lexer, ast::MapTrait};
 
 grammar<'input>(input: &'input str);
 
@@ -149,9 +149,9 @@ ExactPath<E>: &'input str = <l:@L> E (Period IdentLike)* <r:@R> => &input[l..r];
 };
 
 Range: ast::Range = {
-    Integer                             => ast::Range::from(<>),
+    Integer                             => ast::Range::from(<>..(<> + 1)),
     <start:Integer> "to" <end:Integer>  => ast::Range::from(start..end),
-    <start:Integer> "to" <end:"max">    => ast::Range::from((start, ())),
+    <start:Integer> "to" <end:"max">    => ast::Range::from(start..),
 };
 
 
@@ -176,18 +176,18 @@ Block<K, I, E> = K <I> OpenBrace <StmtList<E>> CloseBrace;
 
 // Protocol Buffers file AST
 
-pub File: ast::File<'input> = StmtList<FileEntryStmt>;
+pub Root: Vec<ast::RootEntry<'input>> = StmtList<RootEntryStmt>;
 
-FileEntryStmt: ast::FileEntry<'input> = {
-    CommentStmt                         => ast::FileEntry::r#comment(<>),
-       "syntax" Eq   <String> Semicolon => ast::FileEntry::r#syntax(<>),
-      "package"        <Path> Semicolon => ast::FileEntry::r#package(<>),
-       "import"      <String> Semicolon => ast::FileEntry::r#import(<>),
-     OptionStmt                         => ast::FileEntry::r#option(<>),
-    ServiceStmt                         => ast::FileEntry::r#service(<>),
-    MessageStmt                         => ast::FileEntry::r#message(<>),
-     ExtendStmt                         => ast::FileEntry::r#extend(<>),
-       EnumStmt                         => ast::FileEntry::r#enum(<>),
+RootEntryStmt: ast::RootEntry<'input> = {
+    CommentStmt                         => ast::RootEntry::r#comment(<>),
+       "syntax" Eq   <String> Semicolon => ast::RootEntry::r#syntax(<>),
+      "package"        <Path> Semicolon => ast::RootEntry::r#package(<>),
+       "import"      <String> Semicolon => ast::RootEntry::r#import(<>),
+     OptionStmt                         => ast::RootEntry::r#option(<>),
+    ServiceStmt                         => ast::RootEntry::r#service(<>),
+    MessageStmt                         => ast::RootEntry::r#message(<>),
+     ExtendStmt                         => ast::RootEntry::r#extend(<>),
+       EnumStmt                         => ast::RootEntry::r#enum(<>),
 };
 
 
@@ -216,12 +216,12 @@ MapValue: ast::MapValue<'input> = {
     Integer     => ast::MapValue::integer(<>),
     Ident       => ast::MapValue::ident(<>),
     String      => ast::MapValue::string(<>),
-    JSONLikeMap => ast::MapValue::map(<>),
+    Map => ast::MapValue::map(<>),
 };
 
-JSONLikeMap: ast::JSONLikeMap<'input>
+Map: ast::Map<'input>
     = OpenBrace <TrailingCommaList<(<Ident> Colon <MapValue>)>> CloseBrace
-    => ast::JSONLikeMap::<'input>::from_borrowed_iter(<>);
+    => ast::Map::<'input>::from_borrowed_iter(<>);
 
 
 // service [ident] { ... }

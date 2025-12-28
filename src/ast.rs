@@ -1,45 +1,31 @@
+use ownable::traits::IntoOwned;
 use ownable::IntoOwned;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-pub type File<'a> = Vec<FileEntry<'a>>;
-
-#[derive(Debug, Clone, PartialEq, IntoOwned)]
-pub enum RangeEnd {
-    Integer(i64),
-    Max,
+#[derive(Debug, Clone, PartialEq)]
+pub enum Range {
+    Default(std::ops::Range<i64>),
+    From(std::ops::RangeFrom<i64>),
 }
 
-#[derive(Debug, Clone, PartialEq, IntoOwned)]
-pub struct Range {
-    pub start: i64,
-    pub end: RangeEnd,
-}
+impl IntoOwned for Range {
+    type Owned = Self;
 
-impl From<i64> for Range {
-    fn from(start: i64) -> Self {
-        Self {
-            start,
-            end: RangeEnd::Integer(start + 1),
-        }
+    fn into_owned(self) -> Self::Owned {
+        self
     }
 }
 
 impl From<std::ops::Range<i64>> for Range {
     fn from(range: std::ops::Range<i64>) -> Self {
-        Self {
-            start: range.start,
-            end: RangeEnd::Integer(range.end + 1),
-        }
+        Self::Default(range)
     }
 }
 
-impl From<(i64, ())> for Range {
-    fn from(range: (i64, ())) -> Self {
-        Self {
-            start: range.0,
-            end: RangeEnd::Max,
-        }
+impl From<std::ops::RangeFrom<i64>> for Range {
+    fn from(range: std::ops::RangeFrom<i64>) -> Self {
+        Self::From(range)
     }
 }
 
@@ -49,7 +35,7 @@ pub enum MapValue<'a> {
     Integer(i64),
     Ident(Cow<'a, str>),
     String(Cow<'a, str>),
-    Map(JSONLikeMap<'a>),
+    Map(Map<'a>),
 }
 
 impl<'a> MapValue<'a> {
@@ -69,18 +55,18 @@ impl<'a> MapValue<'a> {
         Self::String(Cow::from(string))
     }
 
-    pub fn map(map: JSONLikeMap<'a>) -> Self {
+    pub fn map(map: Map<'a>) -> Self {
         Self::Map(map)
     }
 }
 
-pub type JSONLikeMap<'a> = HashMap<Cow<'a, str>, MapValue<'a>>;
+pub type Map<'a> = HashMap<Cow<'a, str>, MapValue<'a>>;
 
-pub trait JSONLikeMapTrait<'a> {
+pub trait MapTrait<'a> {
     fn from_borrowed_iter<T: IntoIterator<Item = (&'a str, MapValue<'a>)>>(iter: T) -> Self;
 }
 
-impl<'a> JSONLikeMapTrait<'a> for JSONLikeMap<'a> {
+impl<'a> MapTrait<'a> for Map<'a> {
     fn from_borrowed_iter<T: IntoIterator<Item = (&'a str, MapValue<'a>)>>(iter: T) -> Self {
         let iter = iter.into_iter().map(|(key, value)| (Cow::from(key), value));
         Self::from_iter(iter)
@@ -142,7 +128,7 @@ pub enum CommentType {
 }
 
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
-pub enum FileEntry<'a> {
+pub enum RootEntry<'a> {
     Comment(Comment<'a>),
     Syntax(Cow<'a, str>),
     Package(Cow<'a, str>),
@@ -154,7 +140,7 @@ pub enum FileEntry<'a> {
     Enum(Enum<'a>),
 }
 
-impl<'a> FileEntry<'a> {
+impl<'a> RootEntry<'a> {
     pub fn syntax(value: &'a str) -> Self {
         Self::Syntax(Cow::from(value))
     }
@@ -191,6 +177,8 @@ impl<'a> FileEntry<'a> {
         Self::Enum(r#enum)
     }
 }
+
+pub type Root<'a> = Vec<RootEntry<'a>>;
 
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Service<'a> {
