@@ -1,4 +1,4 @@
-use crate::{ast, lexer, ast::MapTrait};
+use crate::{ast, lexer, ast::FromBorrowedIter};
 
 grammar<'input>(input: &'input str);
 

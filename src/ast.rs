@@ -95,11 +95,15 @@ impl<'a> MapValue<'a> {
 pub type Map<'a> = HashMap<Cow<'a, str>, MapValue<'a>>;
 
 /// Helper for building a [`Map`] from borrowed keys.
-pub trait MapTrait<'a> {
-    fn from_borrowed_iter<T: IntoIterator<Item = (&'a str, MapValue<'a>)>>(iter: T) -> Self;
+pub trait FromBorrowedIter<'a> {
+    type Item;
+
+    fn from_borrowed_iter<T: IntoIterator<Item = Self::Item>>(iter: T) -> Self;
 }
 
-impl<'a> MapTrait<'a> for Map<'a> {
+impl<'a> FromBorrowedIter<'a> for Map<'a> {
+    type Item = (&'a str, MapValue<'a>);
+
     fn from_borrowed_iter<T: IntoIterator<Item = (&'a str, MapValue<'a>)>>(iter: T) -> Self {
         let iter = iter.into_iter().map(|(key, value)| (Cow::from(key), value));
         Self::from_iter(iter)
