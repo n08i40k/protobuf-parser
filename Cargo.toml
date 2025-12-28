@@ -10,15 +10,15 @@ repository = "https://github.com/n08i40k/protobuf-parser"
 readme = "README.md"
 
 [dependencies]
-lalrpop-util = { version = "*", features = ["lexer"] }
-logos = { version = "*", features = ["logos-derive"] }
-ownable = "1"
+lalrpop-util = { version = "0.22", features = ["lexer"] }
+logos = { version = "0.16", features = ["logos-derive"] }
+ownable = "1.0"
 
 [build-dependencies]
-lalrpop = "*"
+lalrpop = "0.22"
 
 [dev-dependencies]
-criterion = "*"
+criterion = "0.8"
 
 [[bench]]
 name = "parser"
