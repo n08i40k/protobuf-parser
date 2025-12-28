@@ -1,15 +1,11 @@
-use crate::ast;
-use crate::{lexer, proto};
+use crate::{ast, parse};
 use std::borrow::Cow;
 
 macro_rules! parse_ast {
     ($file:literal) => {{
         let data = include_str!(concat!("test-cases/", $file));
 
-        let lexer = lexer::Lexer::new(&data);
-        let parser = proto::FileParser::new();
-
-        match parser.parse(data, lexer) {
+        match parse(&data) {
             Err(error) => panic!("{}", error),
             Ok(ast) => ast,
         }
