@@ -3,7 +3,7 @@ use std::borrow::Cow;
 
 macro_rules! parse_ast {
     ($file:literal) => {{
-        let data = include_str!(concat!("test-cases/", $file));
+        let data = include_str!(concat!("../proto/tests/", $file));
 
         match parse(&data) {
             Err(error) => panic!("{}", error),
