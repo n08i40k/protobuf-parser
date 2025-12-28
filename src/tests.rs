@@ -83,29 +83,23 @@ fn message() {
                     ast::Range::from(6..),
                 ]),
                 ast::MessageEntry::reserved_idents(["sample"]),
+                ast::MessageEntry::field(ast::Field::new(None, "bool", "first", 1, vec![])),
                 ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::None,
-                    "bool",
-                    "first",
-                    1,
-                    vec![],
-                )),
-                ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::Optional,
+                    Some(ast::FieldModifier::Optional),
                     "string",
                     "third",
                     3,
                     vec![],
                 )),
                 ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::Repeated,
+                    Some(ast::FieldModifier::Repeated),
                     "uint64",
                     "fourth",
                     4,
                     vec![],
                 )),
                 ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::None,
+                    None,
                     "map<string, string>",
                     "fifth",
                     5,
@@ -129,20 +123,14 @@ fn message_inner() {
                 ast::MessageEntry::message(ast::Message::new(
                     "Child",
                     vec![ast::MessageEntry::field(ast::Field::new(
-                        ast::FieldModifier::None,
+                        None,
                         "bool",
                         "var",
                         1,
                         vec![],
                     ))],
                 )),
-                ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::None,
-                    "Child",
-                    "child",
-                    1,
-                    vec![],
-                )),
+                ast::MessageEntry::field(ast::Field::new(None, "Child", "child", 1, vec![])),
             ],
         )),
     ];
@@ -185,7 +173,7 @@ fn options() {
         ast::RootEntry::extend(ast::Extend::new(
             "google.protobuf.EnumValueOptions",
             vec![ast::ExtendEntry::field(ast::Field::new(
-                ast::FieldModifier::Optional,
+                Some(ast::FieldModifier::Optional),
                 "bool",
                 "own_enum_value",
                 2000,
@@ -195,7 +183,7 @@ fn options() {
         ast::RootEntry::extend(ast::Extend::new(
             "google.protobuf.FieldOptions",
             vec![ast::ExtendEntry::field(ast::Field::new(
-                ast::FieldModifier::Optional,
+                Some(ast::FieldModifier::Optional),
                 "bool",
                 "own_field_value",
                 2000,
@@ -232,7 +220,7 @@ fn options() {
                     ast::MapValue::boolean(true),
                 )),
                 ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::Optional,
+                    Some(ast::FieldModifier::Optional),
                     "bool",
                     "var",
                     1,
@@ -275,13 +263,7 @@ fn comments() {
             "Message",
             vec![
                 ast::MessageEntry::comment(ast::Comment::single_line("// in message")),
-                ast::MessageEntry::field(ast::Field::new(
-                    ast::FieldModifier::None,
-                    "bool",
-                    "var",
-                    1,
-                    vec![],
-                )),
+                ast::MessageEntry::field(ast::Field::new(None, "bool", "var", 1, vec![])),
                 ast::MessageEntry::comment(ast::Comment::single_line("// right after entry")),
                 ast::MessageEntry::comment(ast::Comment::single_line("// at the bottom")),
             ],
@@ -298,7 +280,7 @@ fn comments() {
             vec![
                 ast::ExtendEntry::comment(ast::Comment::single_line("// in extend")),
                 ast::ExtendEntry::field(ast::Field::new(
-                    ast::FieldModifier::Optional,
+                    Some(ast::FieldModifier::Optional),
                     "bool",
                     "var",
                     1,
@@ -338,7 +320,7 @@ fn required() {
         ast::RootEntry::message(ast::Message::new(
             "Message",
             vec![ast::MessageEntry::field(ast::Field::new(
-                ast::FieldModifier::Required,
+                Some(ast::FieldModifier::Required),
                 "bool",
                 "var",
                 1,

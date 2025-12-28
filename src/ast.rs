@@ -4,7 +4,7 @@
 //! ```rust
 //! use protobuf_parser::ast::{Field, FieldModifier, Message, MessageEntry, RootEntry};
 //!
-//! let field = Field::new(FieldModifier::Optional, "string", "name", 1, vec![]);
+//! let field = Field::new(Some(FieldModifier::Optional), "string", "name", 1, vec![]);
 //! let message = Message::new("User", vec![MessageEntry::Field(field)]);
 //! let file = vec![RootEntry::message(message)];
 //! assert_eq!(file.len(), 1);
@@ -407,12 +407,12 @@ impl<'a> MessageEntry<'a> {
 /// ```rust
 /// use protobuf_parser::ast::{Field, FieldModifier};
 ///
-/// let field = Field::new(FieldModifier::Optional, "string", "name", 1, vec![]);
+/// let field = Field::new(Some(FieldModifier::Optional), "string", "name", 1, vec![]);
 /// assert_eq!(field.index, 1);
 /// ```
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Field<'a> {
-    pub modifier: FieldModifier,
+    pub modifier: std::option::Option<FieldModifier>,
     pub r#type: Cow<'a, str>,
     pub ident: Cow<'a, str>,
     pub index: i64,
@@ -421,7 +421,7 @@ pub struct Field<'a> {
 
 impl<'a> Field<'a> {
     pub fn new(
-        modifier: FieldModifier,
+        modifier: std::option::Option<FieldModifier>,
         r#type: &'a str,
         ident: &'a str,
         index: i64,
@@ -438,7 +438,7 @@ impl<'a> Field<'a> {
 
     pub fn basic(r#type: &'a str, ident: &'a str, index: i64) -> Self {
         Self {
-            modifier: FieldModifier::None,
+            modifier: None,
             r#type: Cow::from(r#type),
             ident: Cow::from(ident),
             index,
@@ -489,7 +489,6 @@ impl<'a> OneOfEntry<'a> {
 /// Field modifier keywords.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum FieldModifier {
-    None,
     Optional,
     Required,
     Repeated,

@@ -278,24 +278,24 @@ FieldStmt: ast::Field<'input> = {
         => ast::Field::new(mt.0, mt.1, ident, index, options),
 };
 
-ModFieldType: (ast::FieldModifier, &'input str) = {
+ModFieldType: (Option<ast::FieldModifier>, &'input str) = {
     // [modifier]? map<k, v>
-    <modifier:FieldModifier?> <r#type:MapFieldType> => (modifier.unwrap_or(ast::FieldModifier::None), r#type),
+    <modifier:FieldModifier?> <r#type:MapFieldType> => (modifier, r#type),
 
     // [modifier]  ident[.any]?
     // [modifier] .ident[.any]?
     // [modifier]  kw[.any]?
     // [modifier] .kw[.any]?
-    <modifier:FieldModifier> <r#type:LPath>         => (modifier, r#type),
+    <modifier:FieldModifier> <r#type:LPath>         => (Some(modifier), r#type),
 
     //  ident[.any]?
     // .ident[.any]?
     // .kw[.any]?
-    SafeLPath                                       => (ast::FieldModifier::None, <>),
+    SafeLPath                                       => (None, <>),
 
     // kw*[.any]?
     // * - only "allowed" keywords (not used as message entry first keyword. message, enum, option, etc.)
-    ExactPath<KeywordAsFieldType>                   => (ast::FieldModifier::None, <>),
+    ExactPath<KeywordAsFieldType>                   => (None, <>),
 };
 
 FieldModifier: ast::FieldModifier = {
