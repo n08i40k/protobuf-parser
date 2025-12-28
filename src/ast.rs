@@ -1,8 +1,29 @@
+//! AST definitions for parsed Protocol Buffers files.
+//!
+//! # Examples
+//! ```rust
+//! use protobuf_parser::ast::{Field, FieldModifier, Message, MessageEntry, RootEntry};
+//!
+//! let field = Field::new(FieldModifier::Optional, "string", "name", 1, vec![]);
+//! let message = Message::new("User", vec![MessageEntry::Field(field)]);
+//! let file = vec![RootEntry::message(message)];
+//! assert_eq!(file.len(), 1);
+//! ```
+
 use ownable::traits::IntoOwned;
 use ownable::IntoOwned;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
+/// Represents a reserved or extensions range in `.proto` syntax.
+///
+/// # Examples
+/// ```rust
+/// use protobuf_parser::ast::Range;
+///
+/// let finite = Range::from(1..5);
+/// let open_ended = Range::from(10..);
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub enum Range {
     Default(std::ops::Range<i64>),
@@ -29,6 +50,16 @@ impl From<std::ops::RangeFrom<i64>> for Range {
     }
 }
 
+/// Option values and literal constants that can appear in `.proto` files.
+///
+/// # Examples
+/// ```rust
+/// use protobuf_parser::ast::{Map, MapValue};
+/// use std::borrow::Cow;
+///
+/// let map: Map = [(Cow::from("enabled"), MapValue::boolean(true))].into();
+/// let value = MapValue::map(map);
+/// ```
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum MapValue<'a> {
     Boolean(bool),
@@ -60,8 +91,10 @@ impl<'a> MapValue<'a> {
     }
 }
 
+/// Map literal used by options and aggregate constants.
 pub type Map<'a> = HashMap<Cow<'a, str>, MapValue<'a>>;
 
+/// Helper for building a [`Map`] from borrowed keys.
 pub trait MapTrait<'a> {
     fn from_borrowed_iter<T: IntoIterator<Item = (&'a str, MapValue<'a>)>>(iter: T) -> Self;
 }
@@ -73,6 +106,15 @@ impl<'a> MapTrait<'a> for Map<'a> {
     }
 }
 
+/// Represents an `option` statement or an inline option list entry.
+///
+/// # Examples
+/// ```rust
+/// use protobuf_parser::ast::{MapValue, Option};
+///
+/// let option = Option::new("deprecated", MapValue::boolean(true));
+/// assert_eq!(option.key, "deprecated");
+/// ```
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Option<'a> {
     pub key: Cow<'a, str>,
@@ -88,6 +130,7 @@ impl<'a> Option<'a> {
     }
 }
 
+/// A parsed comment with both raw source and trimmed text.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Comment<'a> {
     pub r#type: CommentType,
@@ -121,12 +164,21 @@ impl<'a> Comment<'a> {
     }
 }
 
+/// Comment type markers for single-line (`//`) and multi-line (`/* */`) comments.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum CommentType {
     SingleLine,
     MultiLine,
 }
 
+/// Top-level entries in a `.proto` file.
+///
+/// # Examples
+/// ```rust
+/// use protobuf_parser::ast::{RootEntry, Comment};
+///
+/// let entry = RootEntry::comment(Comment::single_line("// hi"));
+/// ```
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum RootEntry<'a> {
     Comment(Comment<'a>),
@@ -178,8 +230,10 @@ impl<'a> RootEntry<'a> {
     }
 }
 
+/// Alias for a full `.proto` file AST.
 pub type Root<'a> = Vec<RootEntry<'a>>;
 
+/// Service definition with its RPC entries.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Service<'a> {
     pub ident: Cow<'a, str>,
@@ -195,6 +249,7 @@ impl<'a> Service<'a> {
     }
 }
 
+/// Entries that can appear inside a `service` block.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum ServiceEntry<'a> {
     Comment(Comment<'a>),
@@ -217,6 +272,7 @@ impl<'a> ServiceEntry<'a> {
     }
 }
 
+/// RPC definition inside a `service`.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Rpc<'a> {
     pub ident: Cow<'a, str>,
@@ -238,6 +294,7 @@ impl<'a> Rpc<'a> {
     }
 }
 
+/// Streaming mode for an RPC definition.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum RpcStream {
     None,
@@ -257,6 +314,7 @@ impl RpcStream {
     }
 }
 
+/// Message definition with nested entries.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Message<'a> {
     pub ident: Cow<'a, str>,
@@ -279,6 +337,7 @@ impl<'a> Message<'a> {
     }
 }
 
+/// Entries that can appear inside a `message` block.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum MessageEntry<'a> {
     Comment(Comment<'a>),
@@ -338,6 +397,15 @@ impl<'a> MessageEntry<'a> {
     }
 }
 
+/// Field definition inside a message, oneof, or extend block.
+///
+/// # Examples
+/// ```rust
+/// use protobuf_parser::ast::{Field, FieldModifier};
+///
+/// let field = Field::new(FieldModifier::Optional, "string", "name", 1, vec![]);
+/// assert_eq!(field.index, 1);
+/// ```
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Field<'a> {
     pub modifier: FieldModifier,
@@ -375,6 +443,7 @@ impl<'a> Field<'a> {
     }
 }
 
+/// `oneof` definition inside a message.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct OneOf<'a> {
     pub ident: Cow<'a, str>,
@@ -390,6 +459,7 @@ impl<'a> OneOf<'a> {
     }
 }
 
+/// Entries that can appear inside a `oneof` block.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum OneOfEntry<'a> {
     Comment(Comment<'a>),
@@ -412,6 +482,7 @@ impl<'a> OneOfEntry<'a> {
     }
 }
 
+/// Field modifier keywords.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum FieldModifier {
     None,
@@ -420,6 +491,7 @@ pub enum FieldModifier {
     Repeated,
 }
 
+/// Extend block definition.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Extend<'a> {
     pub r#type: Cow<'a, str>,
@@ -435,6 +507,7 @@ impl<'a> Extend<'a> {
     }
 }
 
+/// Entries that can appear inside an `extend` block.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum ExtendEntry<'a> {
     Comment(Comment<'a>),
@@ -451,6 +524,7 @@ impl<'a> ExtendEntry<'a> {
     }
 }
 
+/// Enum definition.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub struct Enum<'a> {
     pub ident: Cow<'a, str>,
@@ -466,6 +540,7 @@ impl<'a> Enum<'a> {
     }
 }
 
+/// Entries that can appear inside an `enum` block.
 #[derive(Debug, Clone, PartialEq, IntoOwned)]
 pub enum EnumEntry<'a> {
     Comment(Comment<'a>),

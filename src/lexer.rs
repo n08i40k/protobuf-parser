@@ -1,6 +1,18 @@
+//! Tokenization for Protocol Buffers sources.
+//!
+//! # Examples
+//! ```rust
+//! use protobuf_parser::lexer::{Lexer, Token};
+//!
+//! let mut lexer = Lexer::new("syntax = \"proto3\";");
+//! let first = lexer.next().unwrap().unwrap();
+//! assert_eq!(first.1, Token::Syntax);
+//! ```
+
 use logos::{Logos, Span};
 use std::num::{IntErrorKind, ParseIntError};
 
+/// Categories of lexical errors produced by [`Lexer`].
 #[derive(Default, Debug, Clone, PartialEq)]
 pub enum LexicalErrorKind {
     #[default]
@@ -14,6 +26,7 @@ impl From<ParseIntError> for LexicalErrorKind {
     }
 }
 
+/// Error emitted when the lexer cannot produce a valid token.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LexicalError<'a> {
     kind: LexicalErrorKind,
@@ -61,6 +74,7 @@ fn string_from_lexer<'a>(lex: &mut logos::Lexer<'a, Token<'a>>) -> &'a str {
     &slice[1..slice.len() - 1]
 }
 
+/// Token kinds produced by the lexer.
 #[derive(Clone, Debug, PartialEq, Logos)]
 #[logos(error = LexicalErrorKind)]
 #[logos(skip r"[\s\t\n\f]+")]
@@ -192,6 +206,7 @@ impl<'a> std::fmt::Display for Token<'a> {
     }
 }
 
+/// Streaming lexer that yields spanned tokens.
 pub struct Lexer<'input> {
     inner: logos::SpannedIter<'input, Token<'input>>,
 }
@@ -204,6 +219,7 @@ impl<'input> Lexer<'input> {
     }
 }
 
+/// LALRPOP-compatible spanned token wrapper.
 pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
 
 impl<'input> Iterator for Lexer<'input> {
