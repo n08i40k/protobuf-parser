@@ -12,7 +12,14 @@ readme = "README.md"
 [dependencies]
 lalrpop-util = { version = "*", features = ["lexer"] }
 logos = { version = "*", features = ["logos-derive"] }
-ownable = "1.0.0"
+ownable = "1"
 
 [build-dependencies]
 lalrpop = "*"
+
+[dev-dependencies]
+criterion = "*"
+
+[[bench]]
+name = "parser"
+harness = false
