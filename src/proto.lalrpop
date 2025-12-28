@@ -350,9 +350,9 @@ EnumStmt: ast::Enum<'input> = Block<"enum", IdentLike, EnumEntry> => ast::Enum::
 EnumEntry: ast::EnumEntry<'input> = {
      CommentStmt => ast::EnumEntry::comment(<>),
       OptionStmt => ast::EnumEntry::option(<>),
-    EnumPairStmt,
+ EnumVariantStmt,
 };
 
-EnumPairStmt: ast::EnumEntry<'input>
+EnumVariantStmt: ast::EnumEntry<'input>
     = <ident:IdentLike> Eq <value:Integer> <options:OptionListStmt> Semicolon
-    => ast::EnumEntry::pair(ident, value, options);
+    => ast::EnumEntry::variant(ident, value, options);

@@ -161,21 +161,9 @@ fn r#enum() {
         ast::RootEntry::Enum(ast::Enum {
             ident: Cow::from("Enum"),
             entries: vec![
-                ast::EnumEntry::Pair {
-                    ident: Cow::from("ZERO"),
-                    value: 0,
-                    options: vec![],
-                },
-                ast::EnumEntry::Pair {
-                    ident: Cow::from("POSITIVE"),
-                    value: 1,
-                    options: vec![],
-                },
-                ast::EnumEntry::Pair {
-                    ident: Cow::from("NEGATIVE"),
-                    value: -1,
-                    options: vec![],
-                },
+                ast::EnumEntry::variant("ZERO", 0, vec![]),
+                ast::EnumEntry::variant("POSITIVE", 1, vec![]),
+                ast::EnumEntry::variant("NEGATIVE", -1, vec![]),
             ],
         }),
     ];
@@ -227,22 +215,22 @@ fn options() {
                     key: Cow::from("allow_alias"),
                     value: ast::MapValue::Boolean(true),
                 }),
-                ast::EnumEntry::Pair {
-                    ident: Cow::from("FIRST"),
-                    value: 0,
-                    options: vec![ast::Option {
+                ast::EnumEntry::variant(
+                    "FIRST",
+                    0,
+                    vec![ast::Option {
                         key: Cow::from("deprecated"),
                         value: ast::MapValue::Boolean(true),
                     }],
-                },
-                ast::EnumEntry::Pair {
-                    ident: Cow::from("SECOND"),
-                    value: 0,
-                    options: vec![ast::Option {
+                ),
+                ast::EnumEntry::variant(
+                    "SECOND",
+                    0,
+                    vec![ast::Option {
                         key: Cow::from("(own_enum_value)"),
                         value: ast::MapValue::Boolean(true),
                     }],
-                },
+                ),
             ],
         }),
         ast::RootEntry::Message(ast::Message {
@@ -326,11 +314,7 @@ fn comments() {
             ident: Cow::from("Enum"),
             entries: vec![
                 ast::EnumEntry::Comment(ast::Comment::single_line("// in enum")),
-                ast::EnumEntry::Pair {
-                    ident: Cow::from("DEFAULT"),
-                    value: 0,
-                    options: vec![],
-                },
+                ast::EnumEntry::variant("DEFAULT", 0, vec![]),
             ],
         }),
         ast::RootEntry::Extend(ast::Extend {

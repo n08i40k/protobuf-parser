@@ -470,11 +470,7 @@ impl<'a> Enum<'a> {
 pub enum EnumEntry<'a> {
     Comment(Comment<'a>),
     Option(Option<'a>),
-    Pair {
-        ident: Cow<'a, str>,
-        value: i64,
-        options: Vec<Option<'a>>,
-    },
+    Variant(EnumVariant<'a>),
 }
 
 impl<'a> EnumEntry<'a> {
@@ -486,11 +482,18 @@ impl<'a> EnumEntry<'a> {
         Self::Option(option)
     }
 
-    pub fn pair(ident: &'a str, value: i64, options: Vec<Option<'a>>) -> Self {
-        Self::Pair {
+    pub fn variant(ident: &'a str, value: i64, options: Vec<Option<'a>>) -> Self {
+        Self::Variant(EnumVariant {
             ident: Cow::from(ident),
             value,
             options,
-        }
+        })
     }
+}
+
+#[derive(Debug, Clone, PartialEq, IntoOwned)]
+pub struct EnumVariant<'a> {
+    ident: Cow<'a, str>,
+    value: i64,
+    options: Vec<Option<'a>>,
 }
